@@ -48,6 +48,9 @@ pipeline {
                     name: "helm"
                     resources: {}
                     tty: true
+                    env:
+                    - name: "HELM_PATH_CONFIG"
+                      value: "/home/jenkins/agent"
                   - command:
                     - "cat"
                     image: "bitnami/kubectl:latest"

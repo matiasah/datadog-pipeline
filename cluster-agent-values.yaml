@@ -1,0 +1,69 @@
+datadog:
+  apiKeyExistingSecret: datadog-secret
+  apm:
+    portEnabled: true
+  dogstatd:
+    port: 8125
+    useHostPort: true
+    nonLocalTraffic: true
+  logs:
+    enabled:
+    containerCollectAll: true
+  networkMonitoring:
+    enabled: true
+  prometheusScrape:
+    enabled: true
+    serviceEndpoints: true
+  processAgent:
+    enabled: true
+    processCollection: true
+  serviceMonitoring:
+    enabled: true
+  useHostPID: false
+  otlp:
+    receiver:
+      protocols:
+        grpc:
+          enabled: true
+          useHostPort: false
+        http:
+          enabled: true
+          useHostPort: false
+
+clusterAgent:
+  enabled: true
+  containers:
+    initContainers:
+      securityContext:
+        runAsUser: 0
+  securityContext:
+    runAsUser: 101
+  podAnnotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+  metricsProvider:
+    enabled: false
+  admissionController:
+    enabled: true
+    mutateUnlabelled: false
+    configMode: "service"
+  replicas: 2
+  createPodDisruptionBudget: true
+
+agents:
+  enabled: true
+  securityContext:
+    runAsUser: 101
+  podAnnotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+  localService:
+    forceLocalServiceEnabled: true
+    priorityClassCreate: true
+  customAgentConfig:
+    apm_config:
+      filter_tags:
+        reject: ["http.host:datadog.datadog.svc.cluster.local"]
+  containers:
+    traceAgent:
+      env:
+      - name: "DD_APM_IGNORE_RESOURCES"
+        value: "datadog.datadog.svc.cluster.local:8126/*"

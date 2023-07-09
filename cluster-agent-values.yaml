@@ -6,6 +6,8 @@ datadog:
     port: 8125
     useHostPort: true
     nonLocalTraffic: true
+  kubelet:
+    tlsVerify: false
   logs:
     enabled:
     containerCollectAll: true

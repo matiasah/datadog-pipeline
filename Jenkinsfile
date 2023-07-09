@@ -25,7 +25,7 @@ pipeline {
         choice(description: "Action", name: "Action", choices: ["Plan", "Apply"])
         string(description: "Cluster Name", name: "CLUSTER_NAME", defaultValue: env.CLUSTER_NAME ? env.CLUSTER_NAME : '')
         choice(description: "Log Level", name: "LOG_LEVEL", choices: ["ERROR", "INFO", "DEBUG", "CRITICAL", "OFF"])
-        credentials(description: "DataDog API Key", name: "API_KEY_CREDENTIAL_ID", defaultValue: env.API_KEY_CREDENTIAL_ID ? env.API_KEY_CREDENTIAL_ID : '', credentialType: "Token", required: true)
+        credentials(description: "DataDog API Key", name: "API_KEY_CREDENTIAL_ID", defaultValue: env.API_KEY_CREDENTIAL_ID ? env.API_KEY_CREDENTIAL_ID : '', credentialType: "Secret text", required: true)
         booleanParam(description: "Deploy Pod Security Policy", name: "DEPLOY_CLUSTER_AGENT_PSP", defaultValue: true)
         booleanParam(description: "Debug", name: "DEBUG", defaultValue: env.DEBUG ? env.DEBUG : "false")
     }
@@ -85,7 +85,6 @@ pipeline {
                     script {
     
                         // Install repo
-                        sh "chmod +rw ./"
                         sh "helm repo add datadog https://helm.datadoghq.com"
                         sh "helm repo update"
     
@@ -144,7 +143,7 @@ pipeline {
                         if (env.ACTION.equals("Apply")) {
 
                             // Get Credential
-                            withCredentials([usernameColonPassword(credentialsId: env.API_KEY_CREDENTIAL_ID, variable: 'API_KEY')]) {
+                            withCredentials([string(credentialsId: env.API_KEY_CREDENTIAL_ID, variable: 'API_KEY')]) {
 
                                 // Apply API Key
                                 sh "kubectl create secret generic datadog-secret --namespace datadog --from-literal api-key=${API_KEY} --dry-run=client -o yaml | kubectl apply -f -"

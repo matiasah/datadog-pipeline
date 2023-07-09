@@ -185,7 +185,7 @@ pipeline {
 
                         // Cluster agent options
                         CLUSTER_AGENT_OPTIONS = "--set datadog.logLevel=${LOG_LEVEL} "
-                        CLUSTER_AGENT_OPTIONS = "--set targetSystem=${TARGET_SYSTEM}"
+                        CLUSTER_AGENT_OPTIONS = "--set targetSystem=${TARGET_SYSTEM} "
                         CLUSTER_AGENT_OPTIONS += "--set datadog.clusterName=${CLUSTER_NAME} "
 
                         // If Pod Security Policy is enabled

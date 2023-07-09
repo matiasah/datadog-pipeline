@@ -50,7 +50,10 @@ pipeline {
                     tty: true
                     volumeMounts:
                     - mountPath: "/.config"
-                      name: "helm-volume"
+                      name: "config-volume"
+                      readOnly: false
+                    - mountPath: "/.cache/helm/"
+                      name: "cache-volume"
                       readOnly: false
                   - command:
                     - "cat"
@@ -63,7 +66,10 @@ pipeline {
                   volumes:
                   - emptyDir:
                       medium: ""
-                    name: "helm-volume"
+                    name: "config-volume"
+                  - emptyDir:
+                      medium: ""
+                    name: "cache-volume"
             """
         }
     }

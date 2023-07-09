@@ -49,7 +49,7 @@ pipeline {
                     resources: {}
                     tty: true
                     volumeMounts:
-                    - mountPath: "/root/.config"
+                    - mountPath: "/.config"
                       name: "helm-volume"
                       readOnly: false
                   - command:

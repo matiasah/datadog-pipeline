@@ -25,9 +25,9 @@ pipeline {
         choice(description: "Action", name: "Action", choices: ["Plan", "Apply", "Destroy"])
         string(description: "Cluster Name", name: "CLUSTER_NAME", defaultValue: env.CLUSTER_NAME ? env.CLUSTER_NAME : '')
         choice(description: "Log Level", name: "LOG_LEVEL", choices: ["ERROR", "INFO", "DEBUG", "CRITICAL", "OFF"])
+        choice(description: "Target System", name: "TARGET_SYSTEM", choices: ["linux", "windows"])
         credentials(description: "DataDog API Key", name: "API_KEY_CREDENTIAL_ID", defaultValue: env.API_KEY_CREDENTIAL_ID ? env.API_KEY_CREDENTIAL_ID : '', credentialType: "Secret text", required: true)
         booleanParam(description: "Deploy Pod Security Policy", name: "DEPLOY_CLUSTER_AGENT_PSP", defaultValue: env.DEPLOY_CLUSTER_AGENT_PSP ? env.DEPLOY_CLUSTER_AGENT_PSP : false)
-        booleanParam(description: "Disable SystemProbe (Windows)", name: "DISABLE_SYSTEM_PROBE", defaultValue: env.DISABLE_SYSTEM_PROBE ? env.DISABLE_SYSTEM_PROBE : false)
         booleanParam(description: "Debug", name: "DEBUG", defaultValue: env.DEBUG ? env.DEBUG : "false")
     }
 
@@ -185,6 +185,7 @@ pipeline {
 
                         // Cluster agent options
                         CLUSTER_AGENT_OPTIONS = "--set datadog.logLevel=${LOG_LEVEL} "
+                        CLUSTER_AGENT_OPTIONS = "--set targetSystem=${TARGET_SYSTEM}"
                         CLUSTER_AGENT_OPTIONS += "--set datadog.clusterName=${CLUSTER_NAME} "
 
                         // If Pod Security Policy is enabled
@@ -192,14 +193,6 @@ pipeline {
 
                             // Enable Pod Security Policy
                             CLUSTER_AGENT_OPTIONS += "--set agents.podSecurity.podSecurityPolicy.create=true --set clusterAgent.podSecurity.podSecurityPolicy.create=true --api-versions \"policy/v1beta1/PodSecurityPolicy\" "
-
-                        }
-
-                        // If System Probe is disabled
-                        if (env.DISABLE_SYSTEM_PROBE.equals("true")) {
-
-                            // Disable System Probe
-                            CLUSTER_AGENT_OPTIONS += "--set datadog.systemProbe.enabled=false "
 
                         }
 

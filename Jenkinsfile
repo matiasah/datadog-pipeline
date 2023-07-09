@@ -71,7 +71,7 @@ pipeline {
                     script {
     
                         // Install repo
-                        sh "chmod +rw /.config"
+                        sh "chmod +rw ./"
                         sh "helm repo add datadog https://helm.datadoghq.com"
                         sh "helm repo update"
     

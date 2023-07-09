@@ -25,7 +25,7 @@ pipeline {
         choice(description: "Action", name: "Action", choices: ["Plan", "Apply"])
         string(description: "Cluster Name", name: "CLUSTER_NAME", defaultValue: env.CLUSTER_NAME ? env.CLUSTER_NAME : '')
         choice(description: "Log Level", name: "LOG_LEVEL", choices: ["ERROR", "INFO", "DEBUG", "CRITICAL", "OFF"])
-        credentials(description: "DataDog API Key", name: "API_KEY", defaultValue: env.API_KEY ? env.API_KEY : '', credentialType: "Token", required: true)
+        credentials(description: "DataDog API Key", name: "API_KEY_CREDENTIAL_ID", defaultValue: env.API_KEY_CREDENTIAL_ID ? env.API_KEY_CREDENTIAL_ID : '', credentialType: "Token", required: true)
         booleanParam(description: "Deploy Pod Security Policy", name: "DEPLOY_CLUSTER_AGENT_PSP", defaultValue: true)
         booleanParam(description: "Debug", name: "DEBUG", defaultValue: env.DEBUG ? env.DEBUG : "false")
     }
@@ -128,8 +128,13 @@ pipeline {
                         // Apply
                         if (env.ACTION.equals("Apply")) {
 
-                            // Apply API Key
-                            sh "kubectl create secret generic datadog-secret --namespace datadog --from-literal api-key=${API_KEY} --dry-run=client -o yaml | kubectl apply -f -"
+                            // Get Credential
+                            withCredentials([usernameColonPassword(credentialsId: env.API_KEY_CREDENTIAL_ID, variable: 'API_KEY')]) {
+
+                                // Apply API Key
+                                sh "kubectl create secret generic datadog-secret --namespace datadog --from-literal api-key=${API_KEY} --dry-run=client -o yaml | kubectl apply -f -"
+
+                            }
 
                         // Destroy
                         } else if (env.ACTION.equals("Destroy")) {

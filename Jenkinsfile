@@ -82,6 +82,33 @@ pipeline {
 
         }
 
+        stage ("Namespace: Apply") {
+
+            when {
+
+                expression {
+                    return env.ACTION.equals("Apply")
+                }
+
+            }
+
+            steps {
+
+                container ("kubectl") {
+
+                    script {
+
+                        // Apply
+                        sh "kubectl create namespace datadog --dry-run=client -o yaml | kubectl apply -f -"
+
+                    }
+
+                }
+
+            }
+
+        }
+
         stage ("API Key: Apply") {
 
             when {
@@ -135,6 +162,24 @@ pipeline {
                 container ("helm") {
 
                     script {
+
+                        // Cluster agent options
+                        CLUSTER_AGENT_OPTIONS = "--set datadog.logLevel=${LOG_LEVEL} "
+                        CLUSTER_AGENT_OPTIONS += "--set datadog.clusterName=${CLUSTER_NAME} "
+
+                        // If Pod Security Policy is enabled
+                        if (env.DEPLOY_CLUSTER_AGENT_PSP.equals("true")) {
+
+                            // Enable Pod Security Policy
+                            CLUSTER_AGENT_OPTIONS += "--set agents.podSecurity.podSecurityPolicy.create=true --set clusterAgent.podSecurity.podSecurityPolicy.create=true --api-versions \"policy/v1beta1/PodSecurityPolicy\""
+
+                        }
+
+                        // Template
+                        sh "helm template datadog -f cluster-agent-values.yaml datadog/datadog ${CLUSTER_AGENT_OPTIONS} --namespace datadog > datadog-cluster-agent.yaml"
+
+                        // Print Yaml
+                        sh "cat datadog-cluster-agent.yaml"
         
                     }
 
@@ -149,7 +194,7 @@ pipeline {
             when {
                 
                 expression {
-                    return env.ACTION.equals("Apply")
+                    return !env.ACTION.equals("Plan")
                 }
                 
             }
@@ -159,6 +204,57 @@ pipeline {
                 container ("kubectl") {
 
                     script {
+
+                        // Apply
+                        if (env.ACTION.equals("Apply")) {
+
+                            // Apply
+                            sh "kubectl apply -f datadog-cluster-agent.yaml"
+
+                        // Destroy
+                        } else if (env.ACTION.equals("Destroy")) {
+
+                            try {
+                                
+                                // Destroy
+                                sh "kubectl delete -f datadog-cluster-agent.yaml"
+
+                            } catch (Exception e) {
+
+                                // Do nothing
+
+                            }
+
+                        }
+
+                        sh "rm datadog-cluster-agent.yaml"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        stage ("Restart") {
+
+            when {
+                
+                expression {
+                    return !env.ACTION.equals("Plan")
+                }
+                
+            }
+
+            steps {
+
+                container ("kubectl") {
+
+                    script {
+
+                        sh "kubectl rollout restart deployment -n datadog"
+                        sh "kubectl rollout restart daemonset -n datadog"
 
                     }
 

@@ -48,9 +48,10 @@ pipeline {
                     name: "helm"
                     resources: {}
                     tty: true
-                    env:
-                    - name: "HELM_PATH_CONFIG"
-                      value: "/home/jenkins/agent"
+                    volumeMounts:
+                    - mountPath: "/root/.helm"
+                      name: "helm-volume"
+                      readOnly: false
                   - command:
                     - "cat"
                     image: "bitnami/kubectl:latest"
@@ -59,6 +60,10 @@ pipeline {
                     resources: {}
                     tty: true
                   serviceAccountName: jenkins-slave
+                  volumes:
+                  - emptyDir:
+                      medium: ""
+                    name: "helm-volume"
             """
         }
     }
